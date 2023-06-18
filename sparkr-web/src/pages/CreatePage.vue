@@ -69,6 +69,7 @@ export default {
         }
         const dataGet = await responseGet.json();
         store.commit("setTechStack", dataGet[0].tech_stack);
+        store.commit("setResources", dataGet[0].helpful_videos);
 
         // Post project
         const responsePost = await fetch(

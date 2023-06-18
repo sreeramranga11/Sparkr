@@ -23,9 +23,9 @@
       <h1>Resources</h1>
       <div class="tech-scroll">
         <ResourceBox
-          v-for="resource in resources"
-          :key="resource.id"
-          :title="resource.name"
+          v-for="(resource, index) in resources"
+          :key="index"
+          :title="resource.title"
           :link="resource.link"
           class="tech-box"
         />
@@ -35,8 +35,8 @@
 </template>
 
 <script>
-import { computed } from 'vue';
-import { useStore } from 'vuex';
+import { computed } from "vue";
+import { useStore } from "vuex";
 import NavBar from "../components/NavBar.vue";
 import TechBox from "../components/TechBox.vue";
 import ResourceBox from "../components/ResourceBox.vue";
@@ -50,10 +50,12 @@ export default {
   },
   setup() {
     const store = useStore();
-    const techstack = computed(() => store.state.techStack);  // get the techstack from the store
+    const techstack = computed(() => store.state.techStack); // get the techstack from the store
+    const resources = computed(() => store.state.resources);
 
     return {
       techstack,
+      resources,
     };
   },
   methods: {
@@ -96,6 +98,6 @@ export default {
 }
 
 .tech-box {
-  flex: 0 0 auto;
+  
 }
 </style>
