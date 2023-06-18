@@ -12,11 +12,11 @@
       <h1>Tech Stack</h1>
       <div class="tech-scroll">
         <TechBox
-          v-for="tech in techstack"
-          :key="tech.id"
-          :techName="tech.name"
-          :techDescription="tech.description"
-          :techExperience="tech.experience"
+          v-for="(tech, index) in techstack"
+          :key="index"
+          :techName="tech.Technology.trim()"
+          :techDescription="tech.Description"
+          :techExperience="tech.Experience"
           class="tech-box"
         />
       </div>
@@ -35,48 +35,25 @@
 </template>
 
 <script>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 import NavBar from "../components/NavBar.vue";
 import TechBox from "../components/TechBox.vue";
 import ResourceBox from "../components/ResourceBox.vue";
 
 export default {
-  name: "ProjectInfo",
+  name: "ProjectPage",
   components: {
     NavBar,
     TechBox,
     ResourceBox,
   },
-  data() {
+  setup() {
+    const store = useStore();
+    const techstack = computed(() => store.state.techStack);  // get the techstack from the store
+
     return {
-      techstack: [
-        {
-          id: 1,
-          name: "Tech 1",
-          description: "This is tech 1.",
-          experience: "intermediate",
-        },
-        {
-          id: 2,
-          name: "Tech 2",
-          description: "This is tech 2.",
-          experience: "intermediate",
-        },
-        {
-          id: 2,
-          name: "Tech 2",
-          description: "This is tech 2.",
-          experience: "intermediate",
-        },
-
-        // add more projects as needed
-      ],
-
-      resources: [
-        { id: 1, name: "resource 1", link: "https://www.mclaren.com/" },
-        { id: 2, name: "resource 2", link: "https://www.mclaren.com/" },
-
-        // add more projects as needed
-      ],
+      techstack,
     };
   },
   methods: {

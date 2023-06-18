@@ -23,7 +23,12 @@
                 type: String,
                 required: true
             },
-        }
+        },
+
+        mounted() {
+    console.log(this.techName, this.techDescription, this.techExperience);
+}
+
     }
 </script>
 

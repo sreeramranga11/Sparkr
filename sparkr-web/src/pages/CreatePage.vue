@@ -17,40 +17,92 @@
       ></textarea>
     </center>
 
-    <button class="button" @click="toProject" >Submit</button>
+    <button class="button" @click="toProject">
+      <span v-if="!isLoading">Submit</span>
+      <span v-else>
+        <img src="../assets/loader.gif" />
+        <!-- assuming you have a loader gif in your assets -->
+      </span>
+    </button>
   </div>
 </template>
 
 <script>
+import { ref } from "vue";
+import { useStore } from "vuex";
 import NavBar from "../components/NavBar.vue";
-import { useRouter } from 'vue-router';
-
+import { useRouter } from "vue-router";
 
 export default {
   name: "CreatePage",
   components: {
     NavBar,
   },
-    setup() {
-    const router = useRouter();
 
-    const toProject = () => {
-      router.push('/project');
+
+ 
+
+  setup() {
+      const router = useRouter();
+
+    const projectIdea = ref("");
+    const isLoading = ref(false); // new reactive variable for loading state
+    const store = useStore(); // initialize the Vuex store
+    let userId = store.getters.getUserId; // get userId from the store
+    console.log(`userIdonCreate: ${userId}`)
+
+    const navigateToDash = () => {
+      router.push('/dash'); // Corrected this line
+    };
+
+
+    const toProject = async () => {
+      isLoading.value = true; // start loading
+
+      try {
+        // Get tech stack
+        const responseGet = await fetch(
+          `http://Pleasejustworksparkr-env.eba-ttdm78vz.us-west-1.elasticbeanstalk.com/minds/techstack/${projectIdea.value}`
+        );
+        if (!responseGet.ok) {
+          throw new Error("GET API call failed");
+        }
+        const dataGet = await responseGet.json();
+        store.commit("setTechStack", dataGet[0].tech_stack);
+
+        // Post project
+        const responsePost = await fetch(
+          `http://Pleasejustworksparkr-env.eba-ttdm78vz.us-west-1.elasticbeanstalk.com/api/project`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: userId,
+              projectName: "Sparkr Project",
+              promptText: projectIdea.value,
+            }),
+          }
+        );
+
+        if (!responsePost.ok) {
+          throw new Error("POST API call failed");
+        }
+
+        router.push("/project");
+      } catch (error) {
+        console.error(error);
+      } finally {
+        isLoading.value = false; // stop loading whether the API call was successful or not
+      }
     };
 
     return {
-      toProject
+      projectIdea,
+      toProject,
+      navigateToDash,
     };
-  },
-  data() {
-    return {
-      projectIdea: "",
-    };
-  },
-  methods: {
-    navigateToDash() {
-      this.$router.push("/project");
-    },
   },
 };
 </script>
@@ -70,7 +122,7 @@ export default {
 }
 
 .button:hover {
-    cursor: pointer
+  cursor: pointer;
 }
 
 .text {

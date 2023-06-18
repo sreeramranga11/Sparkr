@@ -22,6 +22,7 @@
 <script>
 import { ref, inject } from "vue";
 import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -33,6 +34,7 @@ export default {
     const router = useRouter();
     const email = ref("");
     const password = ref("");
+    const store = useStore();
 
     const auth = inject("auth"); // get the auth instance
     const login = async () => {
@@ -50,25 +52,21 @@ export default {
           );
 
           // Call the API to create a new user in your own database
-          const response = await fetch(
-            "http://pleasejustworksparkr-env.eba-ttdm78vz.us-west-1.elasticbeanstalk.com/api/users",
-            {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                username: "user",
-                email: email.value,
-              }),
-              mode:"no-cors",
-
-            }
-          );
+          const response = await fetch("http://Pleasejustworksparkr-env.eba-ttdm78vz.us-west-1.elasticbeanstalk.com/api/users", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: "user",
+              email: email.value,
+            }),
+          });
 
           const data = await response.json();
-          console.log(data);
+          store.commit('setUserId', data.user_id);
+          console.log(`userId: ${data}`);
         } else {
           // User exists, log them in.
           await signInWithEmailAndPassword(auth, email.value, password.value);
@@ -88,6 +86,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .input-field {

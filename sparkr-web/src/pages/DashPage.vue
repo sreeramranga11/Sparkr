@@ -9,10 +9,9 @@
       <ProjectBox
         v-for="project in projects"
         :key="project.id"
-        :projectName="project.name"
-        :projectDescription="project.description"
+        :projectName="project.project_name"
+        :projectDescription="project.project_prompt"
       />
-
     </div>
   </div>
 </template>
@@ -29,14 +28,29 @@ export default {
   },
   data() {
     return {
-      projects: [
-        { id: 1, name: 'Project 1', description: 'This is project 1.' },
-        { id: 2, name: 'Project 2', description: 'This is project 2.' },
-        // add more projects as needed
-      ],
+      projects: [],
     };
   },
+  created() {
+    this.fetchProjects();
+  },
   methods: {
+    async fetchProjects() {
+      const userId = this.$store.getters.getUserId;
+      const url = `http://Pleasejustworksparkr-env.eba-ttdm78vz.us-west-1.elasticbeanstalk.com/api/projects/${userId}`;
+      
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        this.projects = data;
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    },
     navigateToCreate() {
       this.$router.push("/create");
     },
@@ -61,7 +75,7 @@ export default {
 }
 
 .addBox:hover {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .grid {
