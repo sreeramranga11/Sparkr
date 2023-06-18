@@ -20,7 +20,7 @@
     <button class="button" @click="toProject">
       <span v-if="!isLoading">Submit</span>
       <span v-else>
-        <img src="../assets/loader.gif" />
+        <img src="../assets/loader.gif" class="loader"/>
         <!-- assuming you have a loader gif in your assets -->
       </span>
     </button>
@@ -102,6 +102,7 @@ export default {
       projectIdea,
       toProject,
       navigateToDash,
+      isLoading
     };
   },
 };
@@ -158,5 +159,10 @@ export default {
 
 .icon:hover {
   cursor: pointer;
+}
+
+.loader {
+    height: 30px;
+    width: 30px;
 }
 </style>
