@@ -1,5 +1,8 @@
 require('dotenv').config();
 const MindsDB = require("mindsdb-js-sdk").default;
+const googleIt = require('google-it'); // resources
+const TECHNOLOGIES = ['technology1', 'technology2', 'technology3'];
+const VIDEO_COUNT = 5; // resources
 const express = require('express');
 const bodyParser = require('body-parser');
 const promise = require('bluebird');
@@ -94,16 +97,21 @@ app.get('/minds/techstack/:projectId', async (req, res) => {
             let techstacks = result.rows[0].tech_stack.split('\n').filter(row => row.trim() !== '');
 
             let parsedTechStacks = [];
-            for(let i=0; i<techstacks.length; i+=3) {
+            for (let i = 0; i < techstacks.length; i += 3) {
                 let tech = {
                     "Technology": techstacks[i].substring(3).trim().slice(2),
-                    "Description": techstacks[i+1].substring(3).trim().slice(2),
-                    "Experience": techstacks[i+2].substring(3).trim().slice(2)
+                    "Description": techstacks[i + 1].substring(3).trim().slice(2),
+                    "Experience": techstacks[i + 2].substring(3).trim().slice(2)
                 }
                 parsedTechStacks.push(tech);
             }
             result.rows[0].project_prompt = result.rows[0].project_prompt.replace(/\"/g, "");
             result.rows[0].tech_stack = parsedTechStacks;
+
+            const technologies = parsedTechStacks.map(tech => tech.Technology);
+            const videos = await getHelpfulResources(technologies);
+
+            result.rows[0].helpful_videos = videos;
         }
         res.send(result.rows);
     } catch (error) {
@@ -111,6 +119,7 @@ app.get('/minds/techstack/:projectId', async (req, res) => {
         res.status(500).send(`Error running the query: ${error}`);
     }
 });
+
 
 app.get('/api/users/:email', async (req, res) => {
     const { email } = req.params;
@@ -127,6 +136,37 @@ app.get('/api/users/:email', async (req, res) => {
         }
     }
 });
+
+// resources begins
+function searchVideos(technology) {
+    return new Promise((resolve, reject) => {
+        googleIt({ 'query': `${technology} tutorial youtube` })
+            .then((results) => {
+                // We only want YouTube results
+                const videos = results.filter(result => result.link.includes('www.youtube.com/watch'))
+                    .slice(0, VIDEO_COUNT)
+                    .map((item) => ({
+                        title: item.title,
+                        link: item.link
+                    }));
+
+                resolve(videos);
+            })
+            .catch((e) => {
+                console.error(`Error searching for ${technology} videos:`, e);
+                reject([]);
+            });
+    });
+}
+async function getHelpfulResources(technologies) {
+    const allVideos = await Promise.all(technologies.map(searchVideos));
+    const videos = allVideos.flat();
+    const sortedVideos = videos.sort((a, b) => a.title.localeCompare(b.title)).slice(0, VIDEO_COUNT);
+    return sortedVideos;
+}
+
+
+
 
 
 const port = process.env.PORT || 3000;
