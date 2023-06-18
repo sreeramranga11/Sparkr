@@ -1,46 +1,42 @@
-require('dotenv').config();
-const MindsDB = require("mindsdb-js-sdk").default;
-const googleIt = require('google-it'); // resources
-const TECHNOLOGIES = ['technology1', 'technology2', 'technology3'];
-const VIDEO_COUNT = 5; // resources
+const dotenv = require('dotenv');
+const { default: MindsDB } = require("mindsdb-js-sdk");
+const googleIt = require('google-it');
 const express = require('express');
-const bodyParser = require('body-parser');
-const promise = require('bluebird');
-const axios = require('axios'); 
-const pgp = require('pg-promise')({
-    promiseLib: promise
-});
+const bluebird = require('bluebird');
+const axios = require('axios');
+const pgp = require('pg-promise')({ promiseLib: bluebird });
 const cors = require('cors');
 
-const app = express();
-app.use(bodyParser.json());
-app.use(cors());
+dotenv.config();
 
-(async() => {
-    try {
-        await MindsDB.connect({
-          user: 'veyyakulashabd@gmail.com',
-          password: 'calhacks7'
-        });
-        console.log('connected');
-      
-      } catch(error) {
-        // Failed to authenticate
-        console.log(error);
-      }
+const TECHNOLOGIES = ['technology1', 'technology2', 'technology3'];
+const VIDEO_COUNT = 5;
 
-})();
-
-// AWS RDS PostgreSQL connection details
-const cn = {
-    host: 'sparkr.cznqycnjnyxb.us-west-1.rds.amazonaws.com', 
-    port: '5432', 
-    database: 'init_sparkr',
-    user: 'sparkr',
-    password: 'hello123'
+const dbConfig = {
+    host: 'sparkr.cznqycnjnyxb.us-west-1.rds.amazonaws.com',
+    port: '5432',
+    database: 'init_sparkr',
+    user: 'sparkr',
+    password: 'hello123'
 };
 
-const db = pgp(cn); 
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+const db = pgp(dbConfig);
+
+(async() => {
+    try {
+        await MindsDB.connect({
+          user: 'veyyakulashabd@gmail.com',
+          password: 'calhacks7'
+        });
+        console.log('connected');
+    } catch(error) {
+        console.log(error);
+    }
+})();
 
 app.post('/api/users', async (req, res) => {
     const { username, email } = req.body;
@@ -120,7 +116,6 @@ app.get('/minds/techstack/:projectId', async (req, res) => {
     }
 });
 
-
 app.get('/api/users/:email', async (req, res) => {
     const { email } = req.params;
 
@@ -137,8 +132,7 @@ app.get('/api/users/:email', async (req, res) => {
     }
 });
 
-// resources begins
-function searchVideos(technology) {
+async function searchVideos(technology) {
     return new Promise((resolve, reject) => {
         googleIt({ 'query': `${technology} tutorial youtube` })
             .then((results) => {
@@ -158,16 +152,13 @@ function searchVideos(technology) {
             });
     });
 }
+
 async function getHelpfulResources(technologies) {
     const allVideos = await Promise.all(technologies.map(searchVideos));
     const videos = allVideos.flat();
     const sortedVideos = videos.sort((a, b) => a.title.localeCompare(b.title)).slice(0, VIDEO_COUNT);
     return sortedVideos;
 }
-
-
-
-
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server is listening on port ${port}`));
