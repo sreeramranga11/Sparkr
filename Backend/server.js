@@ -112,5 +112,22 @@ app.get('/minds/techstack/:projectId', async (req, res) => {
     }
 });
 
+app.get('/api/users/:email', async (req, res) => {
+    const { email } = req.params;
+
+    try {
+        const user = await db.one('SELECT user_id FROM users WHERE email = $1', [email]);
+        res.json(user);
+    } catch (err) {
+        console.error('Error fetching user:', err);
+        if (err.received === 0) {
+            res.status(404).json({ error: 'User not found.' });
+        } else {
+            res.status(500).json({ error: 'An error occurred while fetching user' });
+        }
+    }
+});
+
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server is listening on port ${port}`));
