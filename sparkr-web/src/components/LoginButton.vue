@@ -37,46 +37,51 @@ export default {
     const store = useStore();
 
     const auth = inject("auth"); // get the auth instance
-    const login = async () => {
-      try {
-        const signInMethods = await fetchSignInMethodsForEmail(
-          auth,
-          email.value
-        );
-        if (signInMethods.length === 0) {
-          // No user record corresponds to this email, create a new user.
-          await createUserWithEmailAndPassword(
-            auth,
-            email.value,
-            password.value
-          );
+const login = async () => {
+  try {
+    const signInMethods = await fetchSignInMethodsForEmail(auth, email.value);
+    if (signInMethods.length === 0) {
+      // No user record corresponds to this email, create a new user.
+      await createUserWithEmailAndPassword(auth, email.value, password.value);
 
-          // Call the API to create a new user in your own database
-          const response = await fetch("http://Pleasejustworksparkr-env.eba-ttdm78vz.us-west-1.elasticbeanstalk.com/api/users", {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username: "user",
-              email: email.value,
-            }),
-          });
+      // Call the API to create a new user in your own database
+      const response = await fetch("http://Pleasejustworksparkr-env.eba-ttdm78vz.us-west-1.elasticbeanstalk.com/api/users", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "user",
+          email: email.value,
+        }),
+      });
 
-          const data = await response.json();
-          store.commit('setUserId', data.user_id);
-          console.log(`userId: ${data}`);
-        } else {
-          // User exists, log them in.
-          await signInWithEmailAndPassword(auth, email.value, password.value);
-        }
+      const data = await response.json();
+      store.commit('setUserId', data.user_id);
+    } else {
+      // User exists, log them in.
+      await signInWithEmailAndPassword(auth, email.value, password.value);
 
-        router.push("/dash");
-      } catch (error) {
-        console.error(error);
-      }
-    };
+      // Fetch the existing user details from your own database
+      const response = await fetch(`http://localhost:3000/api/users/${email.value}`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+      store.commit('setUserId', data.user_id);
+    }
+
+    router.push("/dash");
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 
     return {
       email,
